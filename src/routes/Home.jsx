@@ -31,8 +31,39 @@ function Home() {
           toast.success(`Done`)
           toast.dismiss(t)
 
-          party.confetti(document.body, {
-            count: party.variation.range(20, 40),
+          getCount().then((res) => {
+            console.log(res)
+            setCounter(res)
+          })
+        })
+        .catch((error) => {
+          console.log(error)
+          toast.dismiss(t)
+        })
+    } catch (error) {
+      console.log(error)
+      toast.dismiss(t)
+    }
+  }
+
+  const dec = async (e) => {
+    const t = toast.loading(`Waiting for transaction's confirmation`)
+
+    try {
+      contract.methods
+        .dec()
+        .send({
+          from: auth.accounts[0],
+        })
+        .then((res) => {
+          console.log(res)
+
+          toast.success(`Done`)
+          toast.dismiss(t)
+
+          getCount().then((res) => {
+            console.log(res)
+            setCounter(res)
           })
         })
         .catch((error) => {
