@@ -1,7 +1,23 @@
+/**
+ * @component UpProvider
+ * @description Context provider that manages Universal Profile (UP) wallet connections and state
+ * for LUKSO blockchain interactions on Grid. It handles wallet connection status, account management, and chain
+ * information while providing real-time updates through event listeners.
+ *
+ * @provides {UpProviderContext} Context containing:
+ * - provider: UP-specific wallet provider instance
+ * - client: Viem wallet client for blockchain interactions
+ * - chainId: Current blockchain network ID
+ * - accounts: Array of connected wallet addresses
+ * - contextAccounts: Array of Universal Profile accounts
+ * - walletConnected: Boolean indicating active wallet connection
+ * - selectedAddress: Currently selected address for transactions
+ * - isSearching: Loading state indicator
+ */
 import { createClientUPProvider } from '@lukso/up-provider'
 import { createWalletClient, custom } from 'viem'
 import { lukso, luksoTestnet } from 'viem/chains'
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 
 const UpContext = createContext()
 
@@ -85,23 +101,30 @@ export function UpProvider({ children }) {
         provider.removeListener('chainChanged', chainChanged)
       }
     }
-  }, [client, accounts.length, contextAccounts.length])
+    // If you want to be responsive to account changes
+    // you also need to look at the first account rather
+    // then the length or the whole array. Unfortunately react doesn't properly
+    // look at array values like vue or knockout.
+  }, [client, accounts[0], contextAccounts[0]])
 
+  // There has to be a useMemo to make sure the context object doesn't change on every
+  // render.
+  const data = useMemo(() => {
+    return {
+      provider,
+      client,
+      chainId,
+      accounts,
+      contextAccounts,
+      walletConnected,
+      selectedAddress,
+      setSelectedAddress,
+      isSearching,
+      setIsSearching,
+    }
+  }, [client, chainId, accounts, contextAccounts, walletConnected, selectedAddress, isSearching])
   return (
-    <UpContext.Provider
-      value={{
-        provider,
-        client,
-        chainId,
-        accounts,
-        contextAccounts,
-        walletConnected,
-        selectedAddress,
-        setSelectedAddress,
-        isSearching,
-        setIsSearching,
-      }}
-    >
+    <UpContext.Provider value={data}>
       <div className="min-h-screen flex items-center justify-center">{children}</div>
     </UpContext.Provider>
   )
